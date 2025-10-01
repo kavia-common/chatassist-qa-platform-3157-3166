@@ -49,7 +49,7 @@ Troubleshooting 404 or "Cannot POST /api/chat/send/":
     -d '{"prompt":"Hello?","title":"My Chat"}'
 - If you receive 502 with "LLM error: OPENAI_API_KEY ...", set OPENAI_API_KEY in the backend .env and restart.
 - If curl to :3001 still returns 404:
-  - Confirm the trailing slash is present (/api/chat/send/).
+  - Try both with and without trailing slash: /api/ask and /api/ask/ (the backend accepts both).
   - Verify the API URLs are included at /api/ (config/urls.py has: path('api/', include('api.urls'))).
   - Make sure the server has reloaded after any code changes.
 - If curl to :3001 still returns "Cannot POST", a proxy in front of Django is intercepting. Verify your gateway/proxy forwards /api/* to Django, or call Django directly as above.

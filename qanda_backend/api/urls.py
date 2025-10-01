@@ -9,10 +9,21 @@ from .views import health, list_chats, chat_history, ask
 # - /api/ask/ (canonical)
 # - /api/chat/send/ (alias to /api/ask/)
 urlpatterns = [
+    # GET endpoints (with and without trailing slash)
     path('health/', health, name='Health'),
+    path('health', health),  # no-slash variant
+
     path('chats/', list_chats, name='ListChats'),
+    path('chats', list_chats),  # no-slash variant
+
     path('history/', chat_history, name='ChatHistory'),
+    path('history', chat_history),  # no-slash variant
+
+    # POST endpoints (with and without trailing slash)
     path('ask/', ask, name='AskQuestion'),
+    path('ask', ask),  # no-slash variant
+
     # Backward-compatible alias for clients calling /api/chat/send/
     path('chat/send/', ask, name='ChatSend'),
+    path('chat/send', ask),  # no-slash variant
 ]

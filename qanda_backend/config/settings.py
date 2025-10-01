@@ -101,6 +101,9 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 X_FRAME_OPTIONS = 'ALLOWALL'
 
+# Trailing slash handling: redirect /api/ask to /api/ask/ etc. when appropriate
+APPEND_SLASH = True
+
 # OpenAI configuration via env (used by LangChain)
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
