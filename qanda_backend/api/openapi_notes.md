@@ -8,8 +8,14 @@ Endpoints:
 - POST /api/chat/send/ -> alias of /api/ask/ (same body and behavior)
 
 Environment variables:
-- OPENAI_API_KEY: required to generate answers
+- OPENAI_API_KEY: required to generate answers (backend-only secret)
 - OPENAI_MODEL: optional (default gpt-4o-mini)
-- DJANGO_SECRET_KEY, DEBUG, ALLOWED_HOSTS, DB_* for database overrides
+- PUBLIC_BACKEND_BASE_URL: public base URL of the backend for frontend to call
+- CORS_ALLOWED_ORIGINS: comma-separated allowed frontend origins (e.g., http://localhost:3000)
+- DJANGO_SECRET_KEY, DEBUG, ALLOWED_HOSTS, TIME_ZONE, DB_* for database overrides
+
+Frontend alignment:
+- Frontend should use API base: ${PUBLIC_BACKEND_BASE_URL}/api
+- Do not expose OPENAI_API_KEY in frontend code or environments.
 
 This backend uses LangChain + OpenAI (ChatOpenAI).

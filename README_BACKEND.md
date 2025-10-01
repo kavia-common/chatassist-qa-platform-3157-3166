@@ -33,6 +33,22 @@ Examples:
 - POST /api/chat/send/
   body: { "prompt": "Hello?", "title": "My Chat" }
 
+Environment variables (alignment with frontend):
+- Backend-only secrets (DO NOT expose to frontend):
+  - OPENAI_API_KEY (required for /api/ask)
+- Public/shared config (safe to mirror in frontend env as needed):
+  - PUBLIC_BACKEND_BASE_URL: Public base URL of this backend used by frontend to call APIs (e.g., http://localhost:8000 or https://your-domain.com)
+  - CORS_ALLOWED_ORIGINS: Comma-separated list of allowed frontend origins (e.g., http://localhost:3000). This should include your frontend origin(s).
+- Other backend configuration:
+  - OPENAI_MODEL (optional, defaults to gpt-4o-mini)
+  - DJANGO_SECRET_KEY, DEBUG, ALLOWED_HOSTS, TIME_ZONE
+  - DB_* to override database (defaults to SQLite)
+
+Frontend env alignment:
+- Ensure the frontend uses the same base URL exposed here:
+  - Example frontend variable: REACT_APP_API_BASE_URL=<PUBLIC_BACKEND_BASE_URL>/api
+- Do not copy OPENAI_API_KEY to the frontend; it must remain server-side only.
+
 Troubleshooting 404 or "Cannot POST /api/chat/send/":
 - If you see a plain text "Cannot POST /api/chat/send/", it usually comes from a frontend dev server or proxy (not Django/DRF). Your request isn’t reaching Django.
 - Ensure you are posting to the backend host/port where Django runs (e.g., :3001), not the frontend host/port (:3000).

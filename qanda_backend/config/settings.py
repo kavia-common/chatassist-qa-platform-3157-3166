@@ -95,11 +95,26 @@ STATIC_URL = 'static/'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS / Proxy
-CORS_ALLOW_ALL_ORIGINS = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
+# -----------------------------------------------------------------------------
+# Cross-Origin Resource Sharing / Proxy and Frontend Connectivity
+# -----------------------------------------------------------------------------
+# If CORS_ALLOWED_ORIGINS is set (comma-separated), restrict to those origins.
+# Otherwise default to allow all (suitable for internal dev but not for production).
+_cors_allowed = os.getenv('CORS_ALLOWED_ORIGINS', '').strip()
+if _cors_allowed:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_allowed.split(',') if o.strip()]
+    CORS_ALLOW_ALL_ORIGINS = False
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
+
+# Respect typical proxy headers if running behind ingress/gateway
+SECURE_PROXY_SSL_HEADER = tuple(os.getenv('SECURE_PROXY_SSL_HEADER', 'HTTP_X_FORWARDED_PROTO,https').split(','))  # ('HTTP_X_FORWARDED_PROTO','https')
+USE_X_FORWARDED_HOST = os.getenv('USE_X_FORWARDED_HOST', 'True').lower() == 'true'
 X_FRAME_OPTIONS = 'ALLOWALL'
+
+# Public backend base URL that can be shared with the frontend (no secrets).
+# This is primarily for documentation and client configuration consistency.
+PUBLIC_BACKEND_BASE_URL = os.getenv('PUBLIC_BACKEND_BASE_URL', 'http://localhost:8000')
 
 # Trailing slash handling: redirect /api/ask to /api/ask/ etc. when appropriate
 APPEND_SLASH = True
