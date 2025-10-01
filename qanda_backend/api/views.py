@@ -144,19 +144,28 @@ def ask(request):
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
+    # Determine acting user (demo fallback)
     user = request.user if request.user and request.user.is_authenticated else _get_or_create_demo_user()
+
+    # chat_id is an integer (per serializer). We must fetch the actual Chat row before using it.
     chat: Chat | None = None
+    chat_id = data.get("chat_id")
 
-    if "chat_id" in data and data["chat_id"] is not None:
-        chat = get_object_or_404(Chat, pk=data["chat_id"], owner=user)
+    if chat_id is not None:
+        # Enforce ownership to avoid leaking chats across users.
+        chat = get_object_or_404(Chat, pk=chat_id, owner=user)
     else:
-        chat = Chat.objects.create(owner=user, title=data.get("title") or "New Chat")
+        # Create a new chat if no chat_id was provided
+        title = data.get("title") or "New Chat"
+        chat = Chat.objects.create(owner=user, title=title)
 
-    # Save user message
+    # Persist the user's message
     Message.objects.create(chat=chat, role="user", content=data["prompt"])
 
-    # Build history for LLM
-    history: List[Tuple[str, str]] = [(m.role, m.content) for m in chat.messages.all().order_by("created_at", "id")]
+    # Build ordered history for the LLM from this chat
+    history: List[Tuple[str, str]] = [
+        (m.role, m.content) for m in chat.messages.all().order_by("created_at", "id")
+    ]
 
     # Call OpenAI via LangChain
     chat_service = OpenAIChatService()
@@ -168,5 +177,6 @@ def ask(request):
     # Save assistant message
     Message.objects.create(chat=chat, role="assistant", content=answer)
 
+    # Serialize response payload explicitly to ensure correct structure
     response = AskResponseSerializer({"chat": ChatSerializer(chat).data, "answer": answer}).data
     return Response(response, status=status.HTTP_200_OK)
