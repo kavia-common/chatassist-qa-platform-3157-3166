@@ -32,3 +32,20 @@ Examples:
   body: { "prompt": "Hello?", "title": "My Chat" }
 - POST /api/chat/send/
   body: { "prompt": "Hello?", "title": "My Chat" }
+
+Troubleshooting "Cannot POST /api/chat/send/":
+- This message typically comes from a frontend dev server or proxy (not Django/DRF). It means your request isn’t reaching Django.
+- Ensure you are posting to the backend host/port where Django runs (e.g., :3001), not the frontend host/port (:3000).
+- In this environment the backend is available at:
+  - Docs: https://vscode-internal-16277-beta.beta01.cloud.kavia.ai:3001/docs
+  - API base: https://vscode-internal-16277-beta.beta01.cloud.kavia.ai:3001/api/
+- Test with curl (alias route):
+  curl -i -X POST https://vscode-internal-16277-beta.beta01.cloud.kavia.ai:3001/api/chat/send/ \
+    -H "Content-Type: application/json" \
+    -d '{"prompt":"Hello?","title":"My Chat"}'
+- Or canonical route:
+  curl -i -X POST https://vscode-internal-16277-beta.beta01.cloud.kavia.ai:3001/api/ask/ \
+    -H "Content-Type: application/json" \
+    -d '{"prompt":"Hello?","title":"My Chat"}'
+- If you receive 502 with "LLM error: OPENAI_API_KEY ...", set OPENAI_API_KEY in the backend .env and restart.
+- If curl to :3001 still returns "Cannot POST", a proxy in front of Django is intercepting. Verify your gateway/proxy forwards /api/* to Django, or call Django directly as above.
