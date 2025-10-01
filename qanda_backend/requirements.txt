@@ -18,4 +18,5 @@ django-cors-headers==4.7.0
 python-dotenv==1.0.1
 langchain==0.3.7
 langchain-openai==0.2.6
-openai==1.52.2
+# langchain-openai 0.2.6 requires openai >=1.54.0,<2.0.0; previous pin 1.52.2 caused a resolver conflict
+openai==1.59.7
