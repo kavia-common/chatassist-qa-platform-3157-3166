@@ -16,12 +16,18 @@ from .serializers import ChatSerializer, MessageSerializer, AskRequestSerializer
 from .services import OpenAIChatService
 
 
+# PUBLIC_INTERFACE
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health(request):
     """
     Health check endpoint.
-    Returns a simple JSON indicating the server status.
+
+    Purpose:
+    - Returns a simple JSON indicating the server status, used for readiness checks.
+
+    Returns:
+    - 200 OK with: {"message": "Server is up!"}
     """
     return Response({"message": "Server is up!"})
 
@@ -42,11 +48,19 @@ def _get_or_create_demo_user() -> User:
     operation_description="Returns all chats for the current user (demo user if auth not configured).",
     responses={200: ChatSerializer(many=True)},
 )
+# PUBLIC_INTERFACE
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_chats(request):
     """
-    List chats for the requesting user. In absence of auth, uses a demo user.
+    List chats for the requesting user.
+
+    Behavior:
+    - Uses the authenticated user if present; otherwise falls back to a demo user.
+    - Returns chats ordered by most recent.
+
+    Returns:
+    - 200 OK with array of Chat objects.
     """
     user = request.user if request.user and request.user.is_authenticated else _get_or_create_demo_user()
     chats = Chat.objects.filter(owner=user).order_by("-created_at")
@@ -65,11 +79,20 @@ def list_chats(request):
     operation_description="Returns the message history for the specified chat.",
     responses={200: MessageSerializer(many=True)},
 )
+# PUBLIC_INTERFACE
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def chat_history(request):
     """
-    Fetch message history for given chat_id.
+    Fetch message history for a given chat.
+
+    Query Parameters:
+    - chat_id (int, required): The chat to fetch messages from.
+
+    Returns:
+    - 200 OK with array of Message objects.
+    - 400 if chat_id is missing.
+    - 404 if chat does not exist for the current user.
     """
     chat_id = request.query_params.get("chat_id")
     if not chat_id:
@@ -88,15 +111,34 @@ def chat_history(request):
     operation_id="ask_question",
     tags=["Chat"],
     operation_summary="Send a question and get an answer",
-    operation_description="Creates a message for the user prompt, calls OpenAI via LangChain, stores the assistant reply, and returns the updated chat and answer.",
+    operation_description=(
+        "Creates a message for the user prompt, calls OpenAI via LangChain, stores the assistant reply, "
+        "and returns the updated chat and answer. This endpoint is accessible at two routes:\n"
+        "- Canonical: POST /api/ask/\n"
+        "- Alias (for compatibility): POST /api/chat/send/\n"
+        "Both accept the same request and return the same response."
+    ),
 )
+# PUBLIC_INTERFACE
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @transaction.atomic
 def ask(request):
     """
     Accepts a prompt and an optional chat_id. If chat_id is absent, a new chat is created.
-    Persists the user's message and the assistant's reply using LangChain + OpenAI.
+
+    Routes:
+    - POST /api/ask/ (canonical)
+    - POST /api/chat/send/ (alias to /api/ask/)
+
+    Request body (JSON):
+    - chat_id (int, optional): existing chat to append to.
+    - prompt (string, required): user's question/prompt.
+    - title (string, optional): used when creating a new chat.
+
+    Returns:
+    - 200 OK with AskResponse { chat: Chat, answer: string }
+    - 502 if the LLM call fails (e.g., missing OPENAI_API_KEY).
     """
     serializer = AskRequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
