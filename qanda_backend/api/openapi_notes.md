@@ -5,6 +5,7 @@ Endpoints:
 - GET /api/chats/ -> list chats for demo/current user
 - GET /api/history/?chat_id={id} -> message history
 - POST /api/ask/ -> body: { "chat_id"?: number, "prompt": string, "title"?: string }
+- POST /api/chat/send/ -> alias of /api/ask/ (same body and behavior)
 
 Environment variables:
 - OPENAI_API_KEY: required to generate answers

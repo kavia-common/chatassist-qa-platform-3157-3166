@@ -22,3 +22,13 @@ Key endpoints (prefixed with /api):
 - GET /chats/
 - GET /history/?chat_id={id}
 - POST /ask/ { chat_id?, prompt, title? }
+
+Notes on routes:
+- Canonical chat send endpoint is POST /api/ask/
+- For compatibility with some clients, POST /api/chat/send/ is provided as an alias to /api/ask/ (same request/response schema)
+
+Examples:
+- POST /api/ask/
+  body: { "prompt": "Hello?", "title": "My Chat" }
+- POST /api/chat/send/
+  body: { "prompt": "Hello?", "title": "My Chat" }
